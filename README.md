@@ -73,6 +73,12 @@ scikit-image 0.26.0, without OpenCV.
 | `needs_human_decision` → input returned | P1, U3, U4, X2 |
 | `delivered`, changed, verify passed → candidate returned | X1 (384×512, `any size`) |
 
+![12 main cases and X1 through the real ComfyUI queue: input, official candidate, change_mask, centre crops](docs/images/demo_cases.png)
+
+The figure comes from the real ComfyUI queue (clean install). Every main case is shown, whatever its outcome. The
+`image` output equals the input in every row except X1. The Release has the full-resolution PNGs and a
+`results.json` with checksums.
+
 **All 19 cases match the official run exactly.** The layers compared were:
 - decoded input pixels;
 - outcome and step list;
@@ -101,8 +107,9 @@ Also tested:
   - A→B→A gave the same results;
   - off-size input and batch 2 were refused with a clear message, and the next prompt ran normally.
 - Interrupt, which is step-granular, not instant. Upstream checks for cancel between its steps.
-  - 512×512: stopped 108–615 ms after `/interrupt` (5 trials; a full run took 1.5 s).
-  - 1536×1536: stopped 0.3–5.8 s after `/interrupt` (4 trials; a full run took 13 s).
+  Measured over the development and clean installs:
+  - 512×512: stopped 90–737 ms after `/interrupt` (10 trials; a full run took 1.5–1.7 s).
+  - 1536×1536: stopped 0.3–6.7 s after `/interrupt` (8 trials; a full run took 13–14 s).
   - Interrupted prompts produce no outputs.
 - No network: with `MIYANG_API_KEY` set and sockets blocked, Repair and Diagnose make no connection attempt and never
   create a regeneration client (unit test).
