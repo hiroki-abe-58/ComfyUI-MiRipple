@@ -1,0 +1,29 @@
+ComfyUI-MiRipple
+Copyright (c) 2026 hiroki-abe-58 (MIT, see LICENSE)
+
+This is an unofficial ComfyUI integration. It is not affiliated with, sponsored by or endorsed by
+MIYANG Technology (Shanghai) Co., Ltd. or the Mi-Ripple authors. "Mi-Ripple" and "MIYANG" are used only to
+say which code this package runs. MIYANG, the MIYANG name and logo and associated product branding are
+trademarks or brand assets of MIYANG Technology (Shanghai) Co., Ltd.; see the upstream TRADEMARKS.md.
+No MIYANG logo, image, paper figure or other upstream asset is included.
+
+Vendored code
+-------------
+miripple_comfy/vendor/mi_ripple/ contains the Python package src/mi_ripple of
+https://github.com/miyang-ai/Mi-Ripple at commit 865a1481acc22da80427bbebe11f1d7f00dc99be,
+licensed under the MIT License:
+
+  Copyright (c) 2026 MIYANG Technology (Shanghai) Co., Ltd.
+
+The full upstream license text is in miripple_comfy/vendor/LICENSE.mi-ripple.
+
+Modification: reference.py carries one local patch, patches/0001-detect-faces-best-effort.patch
+(optional OpenCV face detection made best-effort; the same change is proposed upstream as
+miyang-ai/Mi-Ripple#2). All other vendored files are byte-identical to the upstream commit; per-file
+hashes are listed in miripple_comfy/vendor/VENDOR.json.
+
+tests/upstream_synthetic.py is upstream tests/synthetic.py from the same commit (same MIT license and
+copyright), unmodified, used only by the tests and the CI parity check; it is not part of the Registry package.
+
+The vendored regeneration module (MIYANG image API client) is present only because the upstream pipeline
+imports it. This package never enables regeneration and never sends images anywhere.

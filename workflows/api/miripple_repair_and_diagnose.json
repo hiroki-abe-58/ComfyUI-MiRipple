@@ -1,0 +1,13 @@
+{
+ "1": {"class_type": "LoadImage", "inputs": {"image": "example.png"}},
+ "11": {"class_type": "ImageScale", "inputs": {"image": ["1", 0], "upscale_method": "lanczos", "width": 512, "height": 512, "crop": "center"}},
+ "2": {"class_type": "MiRippleLocalRepair", "inputs": {"image": ["11", 0], "size_policy": "512x512 only", "accept_verify_failure": false, "keep_records": false}},
+ "3": {"class_type": "SaveImage", "inputs": {"images": ["2", 0], "filename_prefix": "mi-ripple/image"}},
+ "4": {"class_type": "PreviewAny", "inputs": {"source": ["2", 4]}},
+ "5": {"class_type": "PreviewAny", "inputs": {"source": ["2", 5]}},
+ "6": {"class_type": "MaskToImage", "inputs": {"mask": ["2", 2]}},
+ "7": {"class_type": "PreviewImage", "inputs": {"images": ["6", 0]}},
+ "8": {"class_type": "MiRippleDiagnose", "inputs": {"image": ["11", 0], "size_policy": "512x512 only", "keep_records": false}},
+ "9": {"class_type": "PreviewImage", "inputs": {"images": ["8", 0]}},
+ "10": {"class_type": "PreviewAny", "inputs": {"source": ["8", 5]}}
+}

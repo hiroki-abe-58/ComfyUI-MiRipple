@@ -1,0 +1,87 @@
+{
+ "upstream": "https://github.com/miyang-ai/Mi-Ripple",
+ "commit": "865a1481acc22da80427bbebe11f1d7f00dc99be",
+ "path": "src/mi_ripple",
+ "license_file": {
+  "vendored_as": "miripple_comfy/vendor/LICENSE.mi-ripple",
+  "sha256": "437cdf288da0d0c0b3771ae0e0664c998b1188f6227f49045d4f2cf7245fd297",
+  "matches_upstream": true
+ },
+ "patches": {
+  "patches/0001-detect-faces-best-effort.patch": {
+   "sha256": "c55f787539049821db0790f8f797a2f8165f58fbfcb694ec3f7abe83c28b7546",
+   "proposed_upstream": "https://github.com/miyang-ai/Mi-Ripple/pull/2"
+  }
+ },
+ "files": {
+  "__init__.py": {
+   "upstream_git_blob": "bc47fabfe6f9392dfdacb168e32decea9a136ef6",
+   "upstream_sha256": "078a561d978f09f7761ff9b28404109123b0c4454d9cf3b91d771568f750762f",
+   "vendored_sha256": "078a561d978f09f7761ff9b28404109123b0c4454d9cf3b91d771568f750762f",
+   "status": "unmodified"
+  },
+  "common.py": {
+   "upstream_git_blob": "c1b24d080c81fd8d015162d2a56237f530ae5fcc",
+   "upstream_sha256": "17c771350f95f60ea066ad0573997ec47fdaaeb10a153098d476780f75336669",
+   "vendored_sha256": "17c771350f95f60ea066ad0573997ec47fdaaeb10a153098d476780f75336669",
+   "status": "unmodified"
+  },
+  "diagnosis.py": {
+   "upstream_git_blob": "85ece9fe9b3779986f592f5f69d097da67ad3767",
+   "upstream_sha256": "2d6913d6f627fc62151a4bdf92a093bdbc269d7e2c24d96fd3d881392612a1a4",
+   "vendored_sha256": "2d6913d6f627fc62151a4bdf92a093bdbc269d7e2c24d96fd3d881392612a1a4",
+   "status": "unmodified"
+  },
+  "notch.py": {
+   "upstream_git_blob": "2ec3898b9c6d1e2c80fdc0962419f18d8c92f77f",
+   "upstream_sha256": "a7537252fe23a799a78e493b5827240957ffd96a7f2462a090a80b85c8e8845e",
+   "vendored_sha256": "a7537252fe23a799a78e493b5827240957ffd96a7f2462a090a80b85c8e8845e",
+   "status": "unmodified"
+  },
+  "pipeline.py": {
+   "upstream_git_blob": "e48b82273c4cddace6b292abcc576ed8b7c6b03c",
+   "upstream_sha256": "3002522ab6ae454d0e7a652e684075e8266e51df6befeb38892cf7da25af9790",
+   "vendored_sha256": "3002522ab6ae454d0e7a652e684075e8266e51df6befeb38892cf7da25af9790",
+   "status": "unmodified"
+  },
+  "reference.py": {
+   "upstream_git_blob": "00831e87abc232edd60578f18491637c5370451d",
+   "upstream_sha256": "787598b155679d8441c8234e5dcc9d5a5f397bed3c71eb1fc417d6e20f659b77",
+   "vendored_sha256": "2e12b473ba609c2d0f1d9d6376694b1fa1b68f368d4bc848f28e29412650ced7",
+   "status": "patched",
+   "patch": "patches/0001-detect-faces-best-effort.patch"
+  },
+  "regeneration.py": {
+   "upstream_git_blob": "d20e56a349aa677cfead2f3e069b46b967bd485c",
+   "upstream_sha256": "1e59d47bb48824bbfcb6d18d9c0f52d1b4ca2d95770154518102b7ea44826c6d",
+   "vendored_sha256": "1e59d47bb48824bbfcb6d18d9c0f52d1b4ca2d95770154518102b7ea44826c6d",
+   "status": "unmodified"
+  },
+  "scale_index.py": {
+   "upstream_git_blob": "fadd396ffcf7b56fb3c8143d6e1690d321cae30a",
+   "upstream_sha256": "8090ae0725eb7f82a20e7459054a2efb2b4bba8fb297edb72cecf5dcfbffb308",
+   "vendored_sha256": "8090ae0725eb7f82a20e7459054a2efb2b4bba8fb297edb72cecf5dcfbffb308",
+   "status": "unmodified"
+  },
+  "spatial.py": {
+   "upstream_git_blob": "5a72b2055f07e76fd31d6ed932a0a9fe8153ad30",
+   "upstream_sha256": "9c47ce392fb8ee12249954828aa43edb56c6c75a0884b66505fe04de46bd3950",
+   "vendored_sha256": "9c47ce392fb8ee12249954828aa43edb56c6c75a0884b66505fe04de46bd3950",
+   "status": "unmodified"
+  },
+  "verify.py": {
+   "upstream_git_blob": "04169f9ef171d688fe41bac0ebbc5320b5212758",
+   "upstream_sha256": "bb179e90c6ac10521a0fe92feb7f1fbe566af497ba229d231bc795f6de5b787b",
+   "vendored_sha256": "bb179e90c6ac10521a0fe92feb7f1fbe566af497ba229d231bc795f6de5b787b",
+   "status": "unmodified"
+  }
+ },
+ "test_files": {
+  "tests/upstream_synthetic.py": {
+   "upstream_path": "tests/synthetic.py",
+   "upstream_git_blob": "1681261279013d4592013b4e8e980f7680315283",
+   "sha256": "24aabb294b6e31401aba86487a241a8362f4b583245335af97dd52664a04d41b",
+   "status": "unmodified"
+  }
+ }
+}

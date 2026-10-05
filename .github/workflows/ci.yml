@@ -1,0 +1,122 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# CPU only, no network at processing time, no model weights. The official Mi-Ripple package (pinned commit,
+# unmodified) runs in its own environment; the node runtime (vendored copy + one patch) runs in a ComfyUI
+# environment with the same numpy / scipy / Pillow / scikit-image versions, and every output must match exactly.
+env:
+  MIRIPPLE_COMMIT: 865a1481acc22da80427bbebe11f1d7f00dc99be
+  COMFYUI_REF: v0.38.0
+  COMFYUI_COMMIT: 6b747c0428c343e1417219641db93a4fb7cb69ae
+  PINS: numpy==2.5.2 scipy==1.18.1 pillow==12.3.0 scikit-image==0.26.0 httpx==0.28.1
+  PYTHONDONTWRITEBYTECODE: "1"
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: ComfyUI-MiRipple
+          persist-credentials: false
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Reference checkouts (pinned, LF)
+        run: |
+          git -c core.autocrlf=false clone --quiet https://github.com/miyang-ai/Mi-Ripple.git refs/Mi-Ripple
+          git -C refs/Mi-Ripple -c core.autocrlf=false checkout --quiet $env:MIRIPPLE_COMMIT
+          if ((git -C refs/Mi-Ripple rev-parse HEAD) -ne $env:MIRIPPLE_COMMIT) { throw "Mi-Ripple commit mismatch" }
+          git -c core.autocrlf=false clone --quiet --depth 1 --branch $env:COMFYUI_REF https://github.com/Comfy-Org/ComfyUI.git refs/ComfyUI
+          if ((git -C refs/ComfyUI rev-parse HEAD) -ne $env:COMFYUI_COMMIT) { throw "ComfyUI commit mismatch" }
+
+      - name: Vendored files equal upstream (+ the one patch)
+        run: |
+          $v = "ComfyUI-MiRipple/miripple_comfy/vendor/mi_ripple"
+          $up = "refs/Mi-Ripple/src/mi_ripple"
+          $names = (Get-ChildItem $up -Filter *.py).Name | Sort-Object
+          if ((Compare-Object $names ((Get-ChildItem $v -Filter *.py).Name | Sort-Object))) { throw "vendored file set differs" }
+          foreach ($n in $names | Where-Object { $_ -ne "reference.py" }) {
+            if ((Get-FileHash "$v/$n").Hash -ne (Get-FileHash "$up/$n").Hash) { throw "$n differs from upstream" }
+          }
+          git -C refs/Mi-Ripple apply ../../ComfyUI-MiRipple/patches/0001-detect-faces-best-effort.patch
+          if ((Get-FileHash "$v/reference.py").Hash -ne (Get-FileHash "$up/reference.py").Hash) { throw "patched reference.py differs" }
+          git -C refs/Mi-Ripple checkout --quiet -- .
+          if ((Get-FileHash ComfyUI-MiRipple/tests/upstream_synthetic.py).Hash -ne (Get-FileHash refs/Mi-Ripple/tests/synthetic.py).Hash) { throw "test generator differs" }
+          if ((Get-FileHash ComfyUI-MiRipple/miripple_comfy/vendor/LICENSE.mi-ripple).Hash -ne (Get-FileHash refs/Mi-Ripple/LICENSE).Hash) { throw "license copy differs" }
+
+      - name: Official reference environment (unmodified package at the pinned commit)
+        run: |
+          python -m venv refenv
+          $rp = if ($IsWindows) { "refenv/Scripts/python" } else { "refenv/bin/python" }
+          & $rp -m pip install --quiet --upgrade pip
+          & $rp -m pip install --quiet $env:PINS.Split(" ")
+          & $rp -m pip install --quiet --no-deps ./refs/Mi-Ripple
+          & $rp -m pip list
+
+      - name: Cases and official runs
+        run: |
+          $rp = if ($IsWindows) { "refenv/Scripts/python" } else { "refenv/bin/python" }
+          & $rp ComfyUI-MiRipple/scripts/make_ci_cases.py refs/cases
+          if ($LASTEXITCODE) { throw "make_ci_cases failed" }
+          & $rp ComfyUI-MiRipple/scripts/run_official.py refs/cases refs/official
+          if ($LASTEXITCODE) { throw "official run failed" }
+          if ((git -C refs/Mi-Ripple status --porcelain) -ne $null) { throw "upstream checkout changed" }
+
+      - name: Install (ComfyUI environment, CPU)
+        run: |
+          python -m pip install --upgrade pip
+          $env:PINS.Split(" ") | Set-Content constraints.txt
+          pip install torch==2.14.1 torchvision==0.29.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install -r refs/ComfyUI/requirements.txt -r ComfyUI-MiRipple/requirements.txt -c constraints.txt pytest==9.1.1 ruff==0.16.10
+          pip list
+
+      - name: Node runtime vs official (all layers, exact)
+        run: |
+          python ComfyUI-MiRipple/scripts/run_node_runtime.py refs/cases refs/node
+          if ($LASTEXITCODE) { throw "node runtime run failed" }
+          python ComfyUI-MiRipple/scripts/compare_runs.py refs/official refs/node refs/compare.json
+          if ($LASTEXITCODE) { throw "node runtime differs from the official run" }
+
+      - name: Lint
+        run: ruff check --no-cache ComfyUI-MiRipple
+
+      - name: No absolute local paths in the repository
+        run: |
+          $files = git -C ComfyUI-MiRipple ls-files | Where-Object { $_ -notmatch '\.(png|jpg)$' } | ForEach-Object { Join-Path ComfyUI-MiRipple $_ }
+          $hits = $files | Select-String -Pattern '[A-Za-z]:\\{1,2}[A-Za-z0-9_.-]+\\|/home/[a-z]+/|/Users/[A-Za-z]+/'
+          if ($hits) { $hits | ForEach-Object { "$($_.Path):$($_.LineNumber)" }; throw "absolute local path found" }
+
+      - name: Tests (ComfyUI required, nothing may be skipped)
+        env:
+          MIRIPPLE_COMFYUI_DIR: ${{ github.workspace }}/refs/ComfyUI
+          MIRIPPLE_REQUIRE_COMFYUI: "1"
+        run: |
+          Set-Location ComfyUI-MiRipple
+          python -m pytest tests -q -rs -p no:cacheprovider
+
+      - name: Keep the comparison
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: compare-${{ matrix.os }}
+          path: refs/compare.json
+          if-no-files-found: ignore
