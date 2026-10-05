@@ -109,12 +109,14 @@ jobs:
           if ($hits) { $hits | ForEach-Object { "$($_.Path):$($_.LineNumber)" }; throw "absolute local path found" }
 
       - name: Tests (ComfyUI required, nothing may be skipped)
+        timeout-minutes: 15
         env:
           MIRIPPLE_COMFYUI_DIR: ${{ github.workspace }}/refs/ComfyUI
           MIRIPPLE_REQUIRE_COMFYUI: "1"
         run: |
           Set-Location ComfyUI-MiRipple
-          python -m pytest tests -q -rs -p no:cacheprovider
+          # a test that stalls dumps every thread's stack after 300 s instead of hanging silently
+          python -m pytest tests -v -rs -p no:cacheprovider -o faulthandler_timeout=300
 
       - name: Keep the comparison
         if: always()
