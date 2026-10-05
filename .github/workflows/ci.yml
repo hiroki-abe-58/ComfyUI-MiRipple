@@ -43,7 +43,8 @@ jobs:
       - name: Reference checkouts (pinned, LF)
         run: |
           git -c core.autocrlf=false clone --quiet https://github.com/miyang-ai/Mi-Ripple.git refs/Mi-Ripple
-          git -C refs/Mi-Ripple -c core.autocrlf=false checkout --quiet $env:MIRIPPLE_COMMIT
+          git -C refs/Mi-Ripple config core.autocrlf false  # later apply / checkout must keep LF (Windows runners default to true)
+          git -C refs/Mi-Ripple checkout --quiet $env:MIRIPPLE_COMMIT
           if ((git -C refs/Mi-Ripple rev-parse HEAD) -ne $env:MIRIPPLE_COMMIT) { throw "Mi-Ripple commit mismatch" }
           git -c core.autocrlf=false clone --quiet --depth 1 --branch $env:COMFYUI_REF https://github.com/Comfy-Org/ComfyUI.git refs/ComfyUI
           if ((git -C refs/ComfyUI rev-parse HEAD) -ne $env:COMFYUI_COMMIT) { throw "ComfyUI commit mismatch" }
@@ -58,8 +59,10 @@ jobs:
             if ((Get-FileHash "$v/$n").Hash -ne (Get-FileHash "$up/$n").Hash) { throw "$n differs from upstream" }
           }
           git -C refs/Mi-Ripple apply ../../ComfyUI-MiRipple/patches/0001-detect-faces-best-effort.patch
+          if ($LASTEXITCODE) { throw "patch does not apply" }
           if ((Get-FileHash "$v/reference.py").Hash -ne (Get-FileHash "$up/reference.py").Hash) { throw "patched reference.py differs" }
           git -C refs/Mi-Ripple checkout --quiet -- .
+          if ((git -C refs/Mi-Ripple status --porcelain) -ne $null) { throw "upstream checkout not restored" }
           if ((Get-FileHash ComfyUI-MiRipple/tests/upstream_synthetic.py).Hash -ne (Get-FileHash refs/Mi-Ripple/tests/synthetic.py).Hash) { throw "test generator differs" }
           if ((Get-FileHash ComfyUI-MiRipple/miripple_comfy/vendor/LICENSE.mi-ripple).Hash -ne (Get-FileHash refs/Mi-Ripple/LICENSE).Hash) { throw "license copy differs" }
 
